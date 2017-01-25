@@ -72,7 +72,7 @@ module.exports = NodeHelper.create({
             if (notify)
             {
                 console.log("[DEBUG] Notifying...");
-                this.sendSocketNotification("JCD BIKES", this.returnData);
+                this.sendSocketNotification("JCD_BIKES", this.returnData);
             }
         });
     }
