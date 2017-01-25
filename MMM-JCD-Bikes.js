@@ -43,7 +43,9 @@ Module.register("MMM-JCD-Bikes", {
         
     socketNotificationReceived: function (notification, payload) {
         if (notification === "JCD BIKES") {
+            console.log("[JCD Bikes] Update notification received");
             this.stationsData = payload;
+            console.log("[DEBUG] Payload: " + this.stationsData);
             this.updateDom();           
         }
     },
