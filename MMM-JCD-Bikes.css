@@ -1,0 +1,20 @@
+.MMM-JCD-Bikes .table {
+    border-spacing: 0px 0px;
+    border-collapse: separate;
+    text-align: left;
+    width: 220px;
+}
+
+.MMM-JCD-Bikes .spacerRow {
+    padding-bottom: 5px;
+}
+
+.MMM-JCD-Bikes .nameRow {
+    border-bottom: 1px solid white;
+}
+
+.MMM-JCD-Bikes .amountRow {
+    font-weight: normal;
+    color: white;
+}
+

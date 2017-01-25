@@ -1,145 +1,144 @@
 /* Magic Mirror
  * Module: MMM-JCD-Bikes
  *
- * By leobaillard https://github.com/leobaillard/MMM-JCD-Bikes
+ * By leobaillard
+ * Based upon: https://github.com/yo-less/MMM-nextbike
  * MIT Licensed.
  */
 
 Module.register("MMM-JCD-Bikes", {
+
+    defaults: {
+        apiKey: '',
+        apiBase: 'https://api.jcdecaux.com/vls/v1/',
+        contract: 'Paris',
+        stations: [],
+        showBikes: true,
+        reload: 1 * 60 * 1000       // every minute
+    },
+
     getTranslations: function () {
         return {
             en: "translations/en.json",
-            fr: "translations/fr.json"
+            fr: "translations/fr.json",
+            de: "translations/de.json"
         };
     },
 
-    defaults: {
-        fontSize: 9,
-        voice: false,
-        dimmed: false,
-
-        jcdApiKey: "",
-        jcdApiUrl: "https://api.jcdecaux.com/vls/v1/",
-        jcdContract: "",
-        jcdStations: [],
-
-        reloadInterval: 60*1000
+    getStyles: function () {
+        return ["MMM-JCD-Bikes.css", "font-awesome.css"];
     },
 
-    init: function() {
-        this.stations = {};
-    },
-
-    start: function() {
-        Log.info("Starting module: " + this.name);
+    start: function () {
         var self = this;
-        setInterval(function() {
-            self.updateDom();
-        }, this.config.reloadInterval);
-
-        this.addStations(this.config.jcdApiUrl, this.config.jcdApiKey, this.config.jcdContract, this.config.jcdStations, this.config.reloadInterval);
+        Log.info("Starting module: " + this.name);
+        this.sendSocketNotification("CONFIG", this.config);
+        setInterval(
+            function()
+            {self.sendSocketNotification("CONFIG", self.config);},
+            this.config.reload
+        );
     },
 
-    getStyles: function() {
-        return ["MMM-JCD-Bikes.css"];
+        
+    socketNotificationReceived: function (notification, payload) {
+        if (notification === "JCD BIKES") {
+            this.stationsData = payload;
+            this.updateDom();           
+        }
     },
 
     getDom: function () {
-        var wrapper = document.createElement("table");
-        wrapper.innerHTML = this.config.text;
-        wrapper.className = "small";
+        // Auto-create MagicMirror header
 
-        var stations = this.createStationsList();
+        var wrapper = document.createElement("div");
+        var header = document.createElement("header");
+        header.innerHTML = this.config.title;
+        wrapper.appendChild(header);
+    
+        // Loading data notification
         
-        if (stations.length === 0) {
-            wrapper.innerHTML = (this.loaded) ? "No information" : "Loading...";
-            wrapper.className = "small dimmed";
-            return wrapper;
-        }
-
-        for (var s in stations) {
-            var station = stations[s];
-            var stationWrapper = document.createElement("tr");
-            stationWrapper.className = "normal";
-
-            /*if (this.config.displaySymbol) {
-                var symbolWrapper = document.createElement("td");
-                symbolWrapper.className = "symbol";
-                var symbol = document.createElement("span");
-
-                var symbolName = 
-            }*/
-
-            var titleWrapper = document.createElement("td");
-            titleWrapper.innerHTML = station.name;
-            titleWrapper.className = "title";
-            stationWrapper.appendChild(titleWrapper);
-
-            var standsWrapper = document.createElement("td");
-            standsWrapper.innerHTML = station.bike_stands;
-            standsWrapper.className = "bright align-center";
-            stationWrapper.appendChild(standsWrapper);
-
-            var availStandsWrapper = document.createElement("td");
-            availStandsWrapper.innerHTML = station.available_bike_stands;
-            availStandsWrapper.className = "bright align-center";
-            stationWrapper.appendChild(availStandsWrapper);
-
-            var availBikesWrapper = document.createElement("td");
-            availBikesWrapper.innerHTML = station.available_bikes;
-            availBikesWrapper.className = "bright align-center";
-            stationWrapper.appendChild(availBikesWrapper);
-
-            wrapper.appendChild(stationWrapper);
-        }
-
-        return wrapper;
-    },
-
-    addStations: function(url, key, contract, stations, reloadInterval) {
-        this.sendSocketNotification("ADD_STATIONS", {
-            url: url,
-            key: key,
-            contract: contract,
-            stations: stations,
-            reloadInterval: reloadInterval
-        });
-    },
-
-    hasStations: function(stations) {
-        if (this.config.jcdStations === stations) {
-            return true;
-        }
-
-        return false;
-    },
-
-    createStationsList: function() {
-        var stations = this.stations;
-        if (stations === undefined) {
-            return [];
-        }
-        
-        return stations;
-    },
-
-    // Override socket notification handler
-    socketNotificationReceived: function (notification, payload) {
-        Log.info("Received: " + notification, payload);
-        if (notification === "STATIONS_EVENTS") {
-            if (this.hasStations(payload.stations)) {
-                this.stations = payload.result;
-                this.loaded = true;
-            }
-        } else if (notification === "FETCH_ERROR") {
-            Log.error("MMM-JCD-Bikes Error. Could not fetch api: " + payload.url);
-        } else if (notification === "INCORRECT_URL") {
-            Log.error("MMM-JCD-Bikes Error. Incorrect url: " + payload.url);
+        if (!this.stationsData) {
+            var text = document.createElement("div");
+            text.innerHTML = this.translate("LOADING");
+            text.className = "small dimmed";
+            wrapper.appendChild(text);
         } else {
-            Log.log("MMM-JCD-Bikes received an unknown socket notification: " + notification);
-        }
+            // Create bike table once data is received
+            var table = document.createElement("table");
+            table.classList.add("small", "table");
+            table.border='0';
+            table.appendChild(this.createSpacerRow());
 
-        this.updateDom();
-        this.show();
+            // List available bikes via a stations array
+            Object.keys(this.stationsData).forEach(function (key)
+            {
+                table.appendChild(this.createStationNameRow(this.stationsData[key].name));
+                table.appendChild(this.createAmountRow(this.stationsData[key]));
+            });
+            table.appendChild(this.createSpacerRow());
+                        
+            wrapper.appendChild(table);
+                
+        }
+        
+        return wrapper; 
     },
+    
+    createSpacerRow: function () {
+        var spacerRow = document.createElement("tr");
+        
+        var spacerHeader = document.createElement("td");
+        spacerHeader.className = "spacerRow";
+        spacerHeader.setAttribute("colSpan", "2");
+        spacerHeader.innerHTML = "";
+        spacerRow.appendChild(spacerHeader); 
+        
+        return spacerRow;
+    },
+
+    createStationNameRow: function(name) {
+        var nameRow = document.createElement("tr");
+        var cell = document.createElement("td");
+        cell.className = "stationName";
+        cell.setAttribute("colSpan", 2);
+
+        nameRow.appendChild(cell);
+
+        return nameRow;
+    },
+
+    createAmountRow: function (station) {
+        var amountRow = document.createElement("tr");
+        
+        var freeBikes = document.createElement("td");
+        freeBikes.className = "amountRow";
+        freeBikes.innerHTML = '<i class="fa fa-bicycle"></i> ' + station.available_bikes;
+        amountRow.appendChild(freeBikes);
+
+        var freeStands = document.createElement("td");
+        freeStands.className = "amountRow";
+        freeStands.innerHTML = '<i class="fa fa-dot-circle-o"></i> ' + station.available_bike_stands;
+        amountRow.appendChild(freeStands);
+        
+        return amountRow;
+    },
+
+    createDataRow: function (data) {
+        var row = document.createElement("tr");
+        
+        var symbol =  document.createElement("td");
+        symbol.setAttribute("width","8px");
+        symbol.className = "fa fa-bicycle";
+        row.appendChild(symbol);
+                
+        var bikeNo = document.createElement("td");
+        bikeNo.className = "bikeNo";
+        bikeNo.innerHTML = data;
+        
+        row.appendChild(bikeNo);
+        
+        return row;
+    }
+
 });

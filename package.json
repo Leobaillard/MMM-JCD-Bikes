@@ -1,14 +1,26 @@
 {
   "name": "MMM-JCD-Bikes",
-  "version": "0.0.0",
-  "description": "",
-  "main": "MMM-JCD-Bikes.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "1.0",
+  "description": "MagicMirror² module - station monitor for the JCDecaux bike-sharing network",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.leoserveur.org/leobaillard/MMM-JCD-Bikes"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "MagicMirror",
+    "JCD",
+	"magic mirror",
+    "smart mirror",
+    "bike sharing",
+    "module"    
+  ],
+  "author": "leobaillard",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.leoserveur.org/leobaillard/MMM-JCD-Bikes/issues"
+  },
+  "homepage": "https://gitlab.leoserveur.org/leobaillard/MMM-JCD-Bikes#readme",
   "dependencies": {
-    "node-rest-client": "^2.0.1"
+    "request": "^2.74.0"
   }
 }

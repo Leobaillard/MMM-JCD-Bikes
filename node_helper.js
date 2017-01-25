@@ -1,64 +1,65 @@
-var NodeHelper = require("node_helper");
-var StationFetcher = require("./stationfetcher.js");
+/* Magic Mirror
+ * Module: MMM-JCD-Bikes
+ *
+ * By leobaillard
+ * Based upon: https://github.com/yo-less/MMM-nextbike
+ * MIT Licensed.
+ */
+
+var parseString = require('xml2js').parseString;
+const request = require('request');
+const NodeHelper = require("node_helper");
+
+
 
 module.exports = NodeHelper.create({
-    // Override start method
+
     start: function() {
-        var self = this;
-        var events = [];
-
-        this.fetchers = [];
-
         console.log("Starting node helper for: " + this.name);
     },
 
-    // Override socketNotificationReceived method
+	
+	/* getParams
+	 * Generates an url with api parameters based on the config.
+	 *
+	 * return String - URL params.
+	 */
+	
+	getParams: function() {
+        var params = "?contract=";
+        params += this.config.contract;
+        params += "&apiKey=";
+        params += this.config.apiKey;
+        return params;
+	},
+	
     socketNotificationReceived: function(notification, payload) {
-        if (notification === "ADD_STATIONS") {
-            this.createFetcher(payload.url, payload.key, payload.contract, payload.stations, payload.reloadInterval);
+        if(notification === 'CONFIG'){
+            this.config = payload;
+            this.returnData = {};
+            for ( var i = 0, len = this.config.stations.length; i < len; i++ )
+            {
+                var api_url = this.config.apiBase + 'stations/' + this.config.stations[i] + this.getParams();
+                this.getData(api_url);
+            }
+            this.sendSocketNotification("JCD BIKES", this.returnData);
         }
     },
 
-    /* createFetcher(url, key, contract, stations, reloadInterval)
-     * Creates a fetcher for stations if it doesn't exist yet.
-     * Otherwise it reuses the existing one.
-     *
-     * attribute service string - A short service name
-     * attribute url string - The web API url
-     * attribute key string - The API key
-     * attribute contract string - The JCD contract number
-     * attribute stations array - An array of station IDs to fetch
-     * attribute reloadIntervall - Reload interval in milliseconds
-     */
-    createFetcher: function(service, url, key, contract, stations, reloadInterval) {
-        var self = this;
-
-        var fetcher;
-        if (typeof self.fetchers[service] === "undefined") {
-            console.log("Create new stations fetcher for service: " + service + " - Interval: " + reloadInterval);
-            fetcher = new StationFetcher(url, key, contract, stations, reloadInterval);
-
-            fetcher.onReceive(function(fetcher) {
-                self.sendSocketNotification("STATIONS_EVENTS", {
-                    stations: fetcher.stations(),
-                    result: fetcher.fetchedStations()
-                });
-            });
-
-            fetcher.onError(function(fetcher, error) {
-                self.sendSocketNotification("FETCH_ERROR", {
-                    stations: fetcher.stations(),
-                    error: error
-                });
-            });
-
-            self.fetchers[service] = fetcher;
-        } else {
-            console.log("Use existing stations fetcher for service: " + service);
-            fetcher = self.fetchers[service];
-            fetcher.broadcastStations();
-        }
-
-        fetcher.startFetch();
+	parseData: function(input) {
+        stationData = JSON.parse(JSON.stringify(result));
+        return stationData;
+	},
+	
+	
+    getData: function(options) {
+		request(options, (error, response, body) => {
+	        if (response.statusCode === 200) {
+                var parsedStation = this.parseData(body);
+                this.returnData[parsedStation.number] = parsedStation;
+            } else {
+                console.log("Error getting nextbike data " + response.statusCode);
+            }
+        });
     }
 });
