@@ -1,6 +1,6 @@
 {
   "name": "MMM-JCD-Bikes",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "MagicMirror² module - station monitor for the JCDecaux bike-sharing network",
   "repository": {
     "type": "git",
