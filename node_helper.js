@@ -46,7 +46,7 @@ module.exports = NodeHelper.create({
     },
 
 	parseData: function(input) {
-        stationData = JSON.parse(JSON.stringify(result));
+        stationData = JSON.parse(JSON.stringify(input));
         return stationData;
 	},
 	
