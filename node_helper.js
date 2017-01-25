@@ -41,12 +41,13 @@ module.exports = NodeHelper.create({
             console.log("[JCD Bikes] Getting stations data");
             for ( var i = 0, len = this.config.stations.length; i < len; i++ )
             {
+                var notify = (i == (len -1)) ? true : false;
                 console.log("[JCD Bikes] --> Station " + this.config.stations[i] + "...");
                 var api_url = this.config.apiBase + 'stations/' + this.config.stations[i] + this.getParams();
                 console.log("[JCD Bikes] --> URL : " + api_url);
-                this.getData(api_url);
+                this.getData(api_url, notify);
             }
-            this.sendSocketNotification("JCD BIKES", this.returnData);
+
         }
     },
 
@@ -56,7 +57,7 @@ module.exports = NodeHelper.create({
 	},
 	
 	
-    getData: function(options) {
+    getData: function(options, notify = false) {
 		request(options, (error, response, body) => {
             console.log("[JCD Bikes] --> Request made (" + response.statusCode + ")");
 	        if (response.statusCode === 200) {
@@ -65,6 +66,9 @@ module.exports = NodeHelper.create({
             } else {
                 console.log("Error getting JCD station data " + response.statusCode);
             }
+
+            if (notify)
+                this.sendSocketNotification("JCD BIKES", this.returnData);
         });
     }
 });
