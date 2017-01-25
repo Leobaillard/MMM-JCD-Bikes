@@ -45,6 +45,8 @@ module.exports = NodeHelper.create({
                 console.log("[JCD Bikes] --> Station " + this.config.stations[i] + "...");
                 var api_url = this.config.apiBase + 'stations/' + this.config.stations[i] + this.getParams();
                 console.log("[JCD Bikes] --> URL : " + api_url);
+                if (notify)
+                    console.log("[DEBUG] Last station, will notify");
                 this.getData(api_url, notify);
             }
 
@@ -68,7 +70,10 @@ module.exports = NodeHelper.create({
             }
 
             if (notify)
+            {
+                console.log("[DEBUG] Notifying...");
                 this.sendSocketNotification("JCD BIKES", this.returnData);
+            }
         });
     }
 });
