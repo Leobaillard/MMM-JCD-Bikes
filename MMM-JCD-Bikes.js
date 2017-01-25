@@ -17,13 +17,13 @@ Module.register("MMM-JCD-Bikes", {
         reload: 1 * 60 * 1000       // every minute
     },
 
-    getTranslations: function () {
+    /*getTranslations: function () {
         return {
             en: "translations/en.json",
             fr: "translations/fr.json",
             de: "translations/de.json"
         };
-    },
+    },*/
 
     getStyles: function () {
         return ["MMM-JCD-Bikes.css", "font-awesome.css"];
