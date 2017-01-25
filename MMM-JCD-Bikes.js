@@ -42,6 +42,7 @@ Module.register("MMM-JCD-Bikes", {
 
         
     socketNotificationReceived: function (notification, payload) {
+        console.log("[JCD Bikes] Notification received: " + notification);
         if (notification === "JCD BIKES") {
             console.log("[JCD Bikes] Update notification received");
             this.stationsData = payload;
