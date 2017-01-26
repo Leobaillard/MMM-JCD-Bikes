@@ -54,7 +54,7 @@ module.exports = NodeHelper.create({
     },
 
 	parseData: function(input) {
-        stationData = JSON.parse(JSON.stringify(input));
+        stationData = JSON.parse(input);
         return stationData;
 	},
 	
@@ -72,6 +72,7 @@ module.exports = NodeHelper.create({
             if (notify)
             {
                 console.log("[DEBUG] Notifying...");
+                console.log(this.returnData);
                 this.sendSocketNotification("JCD_BIKES", this.returnData);
             }
         });
